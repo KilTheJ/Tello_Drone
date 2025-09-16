@@ -1,5 +1,5 @@
 # Tello_Drone
-L’objectif final est de mettre en place un laboratoire logiciel de télémétrie permettant de rejouer, analyser et expérimenter sur des vols réels enregistrés.
+L’objectif final est de mettre en place un laboratoire logiciel de télémétrie permettant de rejouer, analyser et expérimenter des vols réels enregistrés.
 
 Objectifs du projet :
 1. Acquérir et stocker les données de télémétrie d’un Tello lors de vols réels (export de
