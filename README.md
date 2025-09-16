@@ -29,22 +29,23 @@ complémentaire, etc.).
 - Export et partage des datasets (base commune de vols),
 - Comparaison entre plusieurs vols ou plusieurs drones.
 
-Environnement de développement
-● Jupyter Notebook, Visual Studio Code, PyCharm
-● Git / GitHub
-● Matplotlib 3D, Plotly, ou Blender (optionnel pour animation)
+Environnement de développement :
+- Jupyter Notebook, Visual Studio Code, PyCharm
+- Git / GitHub
+- Matplotlib 3D, Plotly, ou Blender (optionnel pour animation)
 Livrables attendus
-● Scripts Python pour l’acquisition, le filtrage et l’analyse de la télémétrie sur Github.
-● Visualisations claires (courbes, cartes 2D/3D, animations).
-● Implémentation d’au moins un algorithme de fusion de données.
-● Démonstration vidéo d’un cas d’usage (ex. reconstruction 3D d’un vol, suivi de
+- Scripts Python pour l’acquisition, le filtrage et l’analyse de la télémétrie sur Github.
+- Visualisations claires (courbes, cartes 2D/3D, animations).
+- Implémentation d’au moins un algorithme de fusion de données.
+- Démonstration vidéo d’un cas d’usage (ex. reconstruction 3D d’un vol, suivi de
 trajectoire).
-● Poster scientifique/technique présentant la démarche, les résultats et les
+- Poster scientifique/technique présentant la démarche, les résultats et les
 perspectives.
-Critères d’évaluation
-● Qualité de l’acquisition et de l’organisation des données.
-● Pertinence des visualisations et analyses proposées.
-● Originalité et efficacité des algorithmes de fusion de données développés.
-● Clarté et rigueur du code fourni (lisibilité, modularité, commentaires).
-● Qualité du poster (concision, design, rigueur scientifique).
-● Autonomie et prise d’initiatives.
+
+Critères d’évaluation :
+- Qualité de l’acquisition et de l’organisation des données.
+- Pertinence des visualisations et analyses proposées.
+- Originalité et efficacité des algorithmes de fusion de données développés.
+- Clarté et rigueur du code fourni (lisibilité, modularité, commentaires).
+- Qualité du poster (concision, design, rigueur scientifique).
+- Autonomie et prise d’initiatives.
