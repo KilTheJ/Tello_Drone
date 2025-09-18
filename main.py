@@ -10,6 +10,8 @@ import socket
 import threading
 import csv
 import time
+import opencv2 as cv2
+from tello_asyncio import Tello, VIDEO_URL as tello
 
 # ---------- Paramètres ----------
 data = "data_tello.csv"
@@ -19,6 +21,7 @@ TELLO_IP = "192.168.10.1"
 CMD_PORT = 8889
 STATE_PORT = 8890
 CSV_FILE = "data_tello.csv"
+video_started = False
 # -------------------------------
 
 # Liste des commandes SDK -------
@@ -200,14 +203,71 @@ def plot_quick(df: pd.DataFrame, outdir: Path):
     saveplot('yaw', 'Yaw [°]')
     saveplot('bat', 'Batterie [%]')
     
-    
-    
+# VOL DU DRONE
 
-# ---------- MAIN ----------
+##############################################################################
+
+def vol():
+    async def main():
+        drone = Tello()
+        try:
+            #Connexion au drone
+            await drone.connect()
+            #Lancement de la video du drone
+            await drone.start_video()
+            
+            #INSTRUCTIONS A DONNER AU DRONE POUR UN TRAJET PREDEFINI (SI RIEN, BEN LA VIDEO VA COUPER VITE)
+            #Décollage du drone
+            #await drone.takeoff()
+            #Faire atterir le drone
+            #await drone.land()
+            #FIN DES INSTRUCTIONS POUR LE VOL DU DRONE 
+            
+        finally:
+            await drone.stop_video()
+            await drone.disconnect()
+
+    tello.run(main())
+
+
+            
+# CAPTURE DE LA VIDEO
+
+##############################################################################
+
+
+def capturevideo():
+    
+    capture = cv2.VideoCapture(tello.VIDEO_URL)
+    capture.open(tello.VIDEO_URL)
+    
+    while True:
+        grabbed, frame = capture.read()
+        if grabbed:
+            cv2.imshow('tello-asyncio', frame)
+        if cv2.waitKey(1) != -1:
+            break
+    
+    capture.release()
+    cv2.destroyAllWindows()
+    
+    
+    
+# MAIN
+
+##############################################################################
+
+
 if __name__ == "__main__":
     # Thread acquisition
     t = threading.Thread(target=listen_state, daemon=True)
     t.start()
+    #Thread pour le vol
+    vol_thread = threading.Thread(target=vol, daemon=True)
+    vol_thread.start()
+    #Thread pour la capture
+    video_thread = threading.Thread(target=capturevideo, daemon=True)
+    video_thread.start()
 
     # Socket pour commandes
     cmd_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -249,5 +309,8 @@ if __name__ == "__main__":
             plt.xlabel("Temps [s]"); plt.ylabel("ToF [cm]"); plt.title("Évolution ToF = distance au sol"); plt.show()
             
             
+
+
+
 
 
