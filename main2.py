@@ -54,15 +54,15 @@ def vol():
 
     Drone.takeoff()
     time.sleep(5)
-    Drone.rotate_clockwise(360)
-    Drone.flip_back()
-    time.sleep(2)
-    Drone.flip_forward()
-    time.sleep(2)
-    Drone.flip_left()
-    time.sleep(2)
-    Drone.flip_right()
-    time.sleep(2)
+    # Drone.rotate_clockwise(360)
+    # Drone.flip_back()
+    # time.sleep(2)
+    # Drone.flip_forward()
+    # time.sleep(2)
+    # Drone.flip_left()
+    # time.sleep(2)
+    # Drone.flip_right()
+    # time.sleep(2)
     Drone.land()
 
     print("Séquence de vol terminée.")
@@ -78,41 +78,44 @@ def listen_state():
         writer = None
     
         while True:
-            text = data.decode('ascii', errors='ignore').strip()
-    
-            # parser simple : "pitch:0;roll:0;...;"
-            state = {}
-            for part in text.split(';'):
+            #text = data.decode('ascii', errors='ignore').strip()
+
+            raw_state = Drone.get_current_state()
+            if not raw_state:
+                continue
+
+            parsed_state = {}
+            for part in raw_state.split(';'):
                 if ':' in part:
                     k, v = part.split(':', 1)
-                    state[k] = v
-        
+                    parsed_state[k] = v
 
-        # Initialiser le writer avec les clés en première ligne
-        if writer is None:
-            fieldnames = ["timestamp"] + list(state.keys())
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
+            # Initialiser le writer avec les clés en première ligne
+            if writer is None:
+                fieldnames = ["timestamp"] + list(parsed_state.keys())
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
 
-        # Écrire une nouvelle ligne avec timestamp
-        row = {"timestamp": time.time()}
-        row.update(state)
-        writer.writerow(row)
-        f.flush()  # écriture immédiate
+            # Écrire une nouvelle ligne avec timestamp
+            row = {"timestamp": time.time()}
+            row.update(parsed_state)
+            writer.writerow(row)
+            f.flush()
 
     print("Acquisation des données de télémétrie du drone" )
  
 
-while True:
+    # Gestion vidéo 
 
-    # Get Frame From Drone Camera Camera 
-    img = Drone.get_frame_read().frame
-    img = cv2.resize(img, (1080,720))
-    # Show The Frame
-    cv2.imshow("DroneCapture", img)
-    cv2.waitKey(1)
-    
-    print("Acquisation du flux vidéo" )
+def video_stream():
+    Drone.streamon()
+    while True:
+        img = Drone.get_frame_read().frame
+        img = cv2.resize(img, (1080, 720))
+        cv2.imshow("DroneCapture", img)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    cv2.destroyAllWindows()
     
     
 # Analyse post-vol des données de télémétrie ##################################
@@ -231,10 +234,13 @@ def plot_quick(df: pd.DataFrame, outdir: Path):
     saveplot('vxy', 'Vitesse horizontale [cm/s]')
     saveplot('yaw', 'Yaw [°]')
     saveplot('bat', 'Batterie [%]')
+
+
     
     
     
 # MAIN ########################################################################
+
 
 
 if __name__ == "__main__":
@@ -242,18 +248,27 @@ if __name__ == "__main__":
     t = threading.Thread(target=listen_state, daemon=True)
     t.start()
     print('thread acquisition des données télémétrique')
+
     #Thread pour le vol
-    time.sleep(2) #pour laisser le temps à l'acquisition des données de démarrer
     vol_thread = threading.Thread(target=vol, daemon=True)
+    vol_thread.start()
     print('thread vol')
+
     #Thread pour la capture du flux vidéo
-    Drone.streamon()
-    print('thread capture vidéo')
+    video_thread = threading.Thread(target=video_stream, daemon=True)
+    video_thread.start()
+    print('Thread vidéo lancé')
 
 
 
-    if KeyboardInterrupt:
+ # Boucle principale (permet d’interrompre à la main)
+    try:
+        while vol_thread.is_alive():  # attendre que le vol soit terminé
+            time.sleep(1)
+    except KeyboardInterrupt:
         print("Arrêt manuel")
+        Drone.end()
+        cv2.destroyAllWindows()
 
     # ---------- Analyse après vol ----------
     print("\n--- Analyse post-vol ---\n")
@@ -275,7 +290,6 @@ if __name__ == "__main__":
         elif 'tof' in df.columns and df['tof'].notna().any():
             plt.figure(); plt.plot(df['t_s'], df['tof'])
             plt.xlabel("Temps [s]"); plt.ylabel("ToF [cm]"); plt.title("Évolution ToF = distance au sol"); plt.show()
-            
             
 
 
