@@ -23,34 +23,36 @@ global img
 Drone = tello.Tello()
 Drone.connect()
 
-#Get Battery Info
-def getTrame() : 
-    while True : 
-        print("Batterie : "  + str(Drone.query_battery()))
-        print("Altitude : "  + str(Drone.query_attitude()))
-    # print("Barométrie : " + str (Drone.query_barometer()))
-    # # print("Température : " + str(Drone.query_temperature()))
-    # print("Accel x : " + str(Drone.get_acceleration_x()))
-    # print("Accel y : " + str(Drone.get_acceleration_y()))
-    # print("Accel z : " + str(Drone.get_acceleration_z()))
-    # # print("Roulis : " + str(Drone.get_roll()))
-    # # print("Tangage : " + str(Drone.get_pitch()))
-    # # print("Lacet : " + str(Drone.get_yaw()))
-    time.sleep(0.033)
+def getVideo():
 
+    #Configuration de la video
+    frame_width = 1080
+    frame_height = 720
+    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+    out = cv2.VideoWriter("output.mp4", fourcc, 60.0, (frame_width, frame_height))
 
+    while True:
+    # #Get Frame From Drone Camera Camera 
+        img = Drone.get_frame_read().frame
+        img = cv2.resize(img, (frame_width,frame_height))
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    #Sauvegarde de la frame 
+        out.write(img)
+    # #Show The Frame
+        cv2.imshow('RGB Image',img )
+        cv2.waitKey(1)
+        
+        if cv2.waitKey(1) == ord('q'):
+            img.release()
+            cv2.destroyAllWindows()
+            break
+        
 #Start Camera Display Stream
 Drone.streamon()
 
-t = threading.Thread(target=getTrame, daemon=True)
+#Gestion du thread pour la vidéo
+t = threading.Thread(target=getVideo, daemon=True)
 t.start()
+stop_thread=False
 
-while True:
 
-# #Get Frame From Drone Camera Camera 
-    img = Drone.get_frame_read().frame
-    img = cv2.resize(img, (1080,720))
-# #Show The Frame
-    cv2.imshow("DroneCapture", img)
-    cv2.waitKey(1)
-    
