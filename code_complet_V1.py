@@ -228,15 +228,13 @@ def getVideo():
 
             # Redimensionnement
             frame = cv2.resize(frame, (FRAME_WIDTH, FRAME_HEIGHT))
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            
+
             # Sauvegarde dans le MP4
             out.write(frame)
 
             # Affichage temps réel
             cv2.imshow("Tello Video", frame)
             key = cv2.waitKey(1) & 0xFF
-            
 
             if key == ord("q"):
                 print("Arrêt vidéo demandé via la touche q")
@@ -515,100 +513,100 @@ def post_flight_analysis():
         # ------ FUSION DE DONNEES CAPTEURS : exemple appliqué à la HAUTEUR --------
         ##############################################################################
 
-        # Objectif :
-        # On veut obtenir une estimation plus fiable de la hauteur du drone.
-        # Le drone fournit deux informations proches :
-        #
-        # - h   : hauteur estimée par le drone (en cm)
-        # - tof : distance au sol mesurée par le capteur ToF (Time Of Flight)
-        #
-        # Ces deux mesures peuvent être légèrement différentes ou bruitées.
-        # On va donc les combiner pour obtenir une estimation fusionnée.
+    # Objectif :
+    # On veut obtenir une estimation plus fiable de la hauteur du drone.
+    # Le drone fournit deux informations proches :
+    #
+    # - h   : hauteur estimée par le drone (en cm)
+    # - tof : distance au sol mesurée par le capteur ToF (Time Of Flight)
+    #
+    # Ces deux mesures peuvent être légèrement différentes ou bruitées.
+    # On va donc les combiner pour obtenir une estimation fusionnée.
 
         def fuse_height(h, tof, alpha=0.4):
             """
             Fusionne deux mesures de hauteur avec une moyenne pondérée.
-
+    
             Paramètres
             ----------
             h : Hauteur donnée par le drone.
             tof : Distance mesurée par le capteur ToF.
             alpha : Poids donné à la mesure h.
                 (1 - alpha) est donc le poids du ToF.
-
+    
             Retour
             ------
             Hauteur fusionnée. (float)
             
             """
-
+    
             # Si une des deux mesures est absente (NaN),
             # on retourne simplement l'autre mesure disponible.
             if pd.isna(h):
                 return tof
-
+    
             if pd.isna(tof):
                 return h
-
+    
             # Calcul de la moyenne pondérée
             # Exemple : si alpha = 0.4
             # h compte pour 40% et tof pour 60%.
             h_fused = alpha * h + (1 - alpha) * tof
-
+    
             return h_fused
-
-
+    
+    
         ##############################################################################
         # ---------- APPLICATION SUR LE DATAFRAME ----------
         ##############################################################################
-
+    
         # On applique la fonction ligne par ligne sur les données de télémétrie.
         # Chaque ligne correspond à un instant de vol.
-
+    
         df["h_fused"] = df.apply(
             lambda row: fuse_height(row["h"], row["tof"]),
             axis=1
         )
-
+    
         # Maintenant le dataframe contient une nouvelle colonne :
         # df["h_fused"]
         # qui représente la hauteur estimée après fusion des deux capteurs.
-
-
+    
+    
         ##############################################################################
         # ---------- COMPARAISON VISUELLE ----------
         ##############################################################################
-
+    
         # Pour comprendre l'intérêt de la fusion,
         # on peut tracer les trois courbes :
-
+    
         plt.figure()
-
+    
         # Hauteur estimée par le drone
         plt.plot(df["t_s"], df["h"], label="h (drone)")
-
+    
         # Distance mesurée par le capteur ToF
         plt.plot(df["t_s"], df["tof"], label="tof (capteur distance)")
-
+    
         # Hauteur fusionnée
         plt.plot(df["t_s"], df["h_fused"], label="hauteur fusionnée")
-
+    
         plt.xlabel("Temps [s]")
         plt.ylabel("Hauteur [cm]")
         plt.title("Fusion de capteurs pour l'estimation de la hauteur")
         plt.legend()
-
+    
         plt.show()
-
+    
         df.to_csv(OUTDIR / "cleaned_parsed.csv", index=False)
         summary.to_csv(OUTDIR / "summary.csv", index=False)
-
+    
         print("Résumé du vol :")
         print(summary.to_string(index=False))
-
+    
         if SHOW_PLOTS:
             plot_quick(df, OUTDIR)
-
+    
             if "h" in df.columns and df["h"].notna().any():
                 plt.figure()
                 plt.plot(df["t_s"], df["h"])
@@ -616,7 +614,7 @@ def post_flight_analysis():
                 plt.ylabel("Hauteur [cm]")
                 plt.title("Évolution de la hauteur")
                 plt.show()
-
+    
             elif "tof" in df.columns and df["tof"].notna().any():
                 plt.figure()
                 plt.plot(df["t_s"], df["tof"])
@@ -624,7 +622,7 @@ def post_flight_analysis():
                 plt.ylabel("ToF [cm]")
                 plt.title("Évolution ToF = distance au sol")
                 plt.show()
-
+    
     except Exception as e:
         print(f"Analyse post-vol impossible : {e}")
 
@@ -793,6 +791,3 @@ if __name__ == "__main__":
         post_flight_analysis()
 
         print("\n--- Programme terminé ---\n")
-        
-        
-
