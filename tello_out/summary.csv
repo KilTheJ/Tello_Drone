@@ -1,0 +1,2 @@
+samples,duration_s,vxy_max_m_s,h_max_m,tof_max_m,z_max_m,yaw_span_deg,traveled_2d_m,traveled_3d_m,battery_start_pct,battery_end_pct,battery_drop_pct
+691,71.2277181148529,0.08,1.5,2.58,2.138194796761094,10.0,0.1687728120561575,6.364264961368943,100.0,75.0,25.0
